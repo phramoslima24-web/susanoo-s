@@ -127,7 +127,7 @@ public final class SusanooManager {
         double st = Bridge.getDouble(p, "if_susanoo", 0.0D);
         CharacterSusanoo cur = find(p, k);
         if (st >= 1.0D && st <= 4.0D && Implants.mangekyouActive(p)) {
-            if (cur == null || cur.getStage() != (int) st) {
+            if (cur == null || cur.getStage() < (int) st) { // nunca rebaixa/recria um Susanoo ja maior ou montado
                 int n = MAT.merge(p.getUUID(), 1, Integer::sum);
                 if (n >= 25) {
                     MAT.remove(p.getUUID());

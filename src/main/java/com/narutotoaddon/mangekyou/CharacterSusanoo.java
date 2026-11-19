@@ -311,8 +311,9 @@ public class CharacterSusanoo extends TamableAnimal implements GeoEntity {
                 return;
             }
             double st = Bridge.getDouble(owner, "if_susanoo", -1.0D);
-            if (st == 0.0D) {
-                if (++zeroGrace > 30) { // pequena tolerancia: o mod zera if_susanoo ao trocar de estagio
+            boolean ridden = isPerfectMount() && owner.getVehicle() == this; // montado = ativo, nunca some por if_susanoo
+            if (st == 0.0D && !ridden && this.tickCount > 100) {
+                if (++zeroGrace > 100) { // tolerancia: o mod zera if_susanoo durante a transicao de estagio
                     vanish();
                     return;
                 }
