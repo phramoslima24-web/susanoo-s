@@ -270,7 +270,6 @@ public final class SusanooAbilities {
     public static void attackAction(ServerPlayer p) {
         CharacterSusanoo s = SusanooManager.find(p, SusanooKind.SHISUI);
         if (s != null && s.isLanceActive()) lanceStab(p, s);
-        else if (p.getVehicle() instanceof CharacterSusanoo cs && cs.isPerfectMount()) slash(p, cs);
     }
 
     private static boolean cd(ServerPlayer p, String key, int ticks) {

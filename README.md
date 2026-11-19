@@ -79,5 +79,5 @@ Ao o mod invocar o Susanoo do Sasuke (costela, esqueleto, completo, perfeito), o
 - **Clones**: o mod nao tem "clone de madeira"; foi usado o **Clone das Sombras** (`clone_new` / `sage_clone`). Cada clone recebe um Susanoo (estagio completo) que o segue; some quando o clone morre/expira. O limite e o do mod (chakra + 5), no maximo 12.
 - Fogo (Katon) compativel com o Tsukumo: Bola de Fogo, Grande Dragao de Fogo, Hosenka, Grande Rajada de Chamas, Grande Aniquilacao, Bomba de Oleo de Sapo, Ocultacao em Cinzas (lancados ate 5 s antes ou durante a rajada).
 - Susanoos do addon nao sao salvos no disco e somem sozinhos (dono/clone/implante mudou, dono offline): sem entidades abandonadas.
-- Estagio perfeito: montaria como a original; o clique direito com a espada do Susanoo (item do mod) faz o golpe do addon.
+- O Susanoo ORIGINAL do Sasuke continua existindo (invisivel) e mantem todos os poderes (montaria, espada, arco, punhos); o Susanoo do Mangekyou o acompanha como corpo visual e das habilidades novas.
 - Nada foi compilado nem testado no jogo.

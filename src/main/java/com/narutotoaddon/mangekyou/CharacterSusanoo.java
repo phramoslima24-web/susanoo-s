@@ -115,7 +115,8 @@ public class CharacterSusanoo extends TamableAnimal implements GeoEntity {
     public int getFade() { return this.entityData.get(FADE); }
     public String getAct() { return this.entityData.get(ACT); }
     public UUID getAnchorUuid() { return anchorUuid; }
-    public boolean isPerfectMount() { return getStage() == 4 && !isClone(); }
+    /** O addon nunca substitui a montaria: o Susanoo original do Sasuke segue existindo (invisivel) e este o acompanha. */
+    public boolean isPerfectMount() { return false; }
 
     /** Prepara a entidade logo apos criar (servidor). */
     public void init(Player owner, int stage, boolean clone, UUID anchor) {
@@ -296,8 +297,8 @@ public class CharacterSusanoo extends TamableAnimal implements GeoEntity {
             this.discard(); // dono offline / em outra dimensao: nao deixa entidade abandonada
             return;
         }
-        if (isClone()) {
-            Entity a = anchorUuid == null ? null : sl.getEntity(anchorUuid);
+        if (anchorUuid != null) { // clone de sombra OU Susanoo original do Sasuke (que mantem todos os poderes)
+            Entity a = sl.getEntity(anchorUuid);
             boolean dead = a == null || a.isRemoved() || !a.isAlive()
                     || (a instanceof LivingEntity le && le.isDeadOrDying());
             if (dead || SusanooKind.of(owner) != k) {
@@ -311,21 +312,15 @@ public class CharacterSusanoo extends TamableAnimal implements GeoEntity {
                 return;
             }
             double st = Bridge.getDouble(owner, "if_susanoo", -1.0D);
-            boolean ridden = isPerfectMount() && owner.getVehicle() == this; // montado = ativo, nunca some por if_susanoo
-            if (st == 0.0D && !ridden && this.tickCount > 100) {
-                if (++zeroGrace > 100) { // tolerancia: o mod zera if_susanoo durante a transicao de estagio
+            if (st == 0.0D && this.tickCount > 100) {
+                if (++zeroGrace > 100) {
                     vanish();
                     return;
                 }
             } else {
                 zeroGrace = 0;
             }
-            if (!isPerfectMount()) {
-                follow(owner);
-            } else {
-                boolean mv = this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-4D;
-                if (this.entityData.get(MOVING) != mv) this.entityData.set(MOVING, mv);
-            }
+            follow(owner);
         }
         // animacao de habilidade
         if (actTicks > 0 && --actTicks == 0) this.entityData.set(ACT, "");

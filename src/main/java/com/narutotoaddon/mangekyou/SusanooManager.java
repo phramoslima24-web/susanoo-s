@@ -42,6 +42,7 @@ public final class SusanooManager {
     private static final String[] FIRE_WORDS = {"fireball", "goryuka", "housenka", "daiendan", "goka_mekkyaku", "gamayu",
             "haijin", "katon", "flame"};
     public static final String CLONE_FLAG = "mkaddon_clone_susanoo";
+    public static final String HIDDEN = "mkaddon_hidden";
     public static final String FIRE_TS = "mkaddon_fire_ts";
     public static final int MAX_CLONE_SUSANOOS = 12;
 
@@ -94,14 +95,23 @@ public final class SusanooManager {
         return s;
     }
 
-    private static void replace(ServerPlayer p, SusanooKind k, Mob original, int stage) {
-        for (CharacterSusanoo old : mine(p, false)) old.discard();
-        boolean riding = p.getVehicle() == original;
-        Vec3 pos = original.position();
-        float yaw = original.getYRot();
-        original.discard(); // sai sem disparar "morte" do original
-        CharacterSusanoo s = spawn(p, k, stage, stage == 4 ? pos : p.position(), yaw, false, null);
-        if (s != null && stage == 4 && (riding || p.getVehicle() == null)) p.startRiding(s, true);
+    /**
+     * O Susanoo original do Sasuke NAO e removido (assim a montaria, a espada, o arco, os punhos e todos os poderes
+     * dele continuam funcionando). Ele fica invisivel e o Susanoo do Mangekyou o acompanha como corpo visual
+     * e das habilidades exclusivas.
+     */
+    private static void attach(ServerPlayer p, SusanooKind k, Mob original, int stage) {
+        UUID oid = original.getUUID();
+        boolean has = false;
+        for (CharacterSusanoo s : mine(p, false)) {
+            if (oid.equals(s.getAnchorUuid()) && s.kind() == k && s.getStage() == stage) { has = true; break; }
+        }
+        if (!has) {
+            for (CharacterSusanoo old : mine(p, false)) old.discard();
+            spawn(p, k, stage, original.position(), original.getYRot(), false, oid);
+        }
+        if (!original.isInvisible()) original.setInvisible(true);
+        original.getPersistentData().putBoolean(HIDDEN, true);
     }
 
     // ---------------------------------------------------------------- eventos
@@ -112,6 +122,13 @@ public final class SusanooManager {
         SusanooKind k = SusanooKind.of(p);
         if (k == null) {
             MAT.remove(p.getUUID());
+            if (p.tickCount % 20 == 0) {
+                for (Mob m : p.level().getEntitiesOfClass(Mob.class, p.getBoundingBox().inflate(16.0D, 50.0D, 16.0D),
+                        x -> originalStage(x) > 0 && x.getPersistentData().getBoolean(HIDDEN))) {
+                    m.setInvisible(false);
+                    m.getPersistentData().remove(HIDDEN);
+                }
+            }
             return;
         }
         if (p.tickCount % 2 != 0) return;
@@ -120,7 +137,7 @@ public final class SusanooManager {
         AABB box = p.getBoundingBox().inflate(16.0D, 50.0D, 16.0D);
         for (Mob m : p.level().getEntitiesOfClass(Mob.class, box,
                 x -> originalStage(x) > 0 && x instanceof TamableAnimal t && t.isOwnedBy(p))) {
-            replace(p, k, m, originalStage(m));
+            attach(p, k, m, originalStage(m));
         }
 
         // 2) Susanoo "ativo" no mod mas sem entidade (troca de implante, relogar, trocar de dimensao): invoca o certo
@@ -197,17 +214,6 @@ public final class SusanooManager {
     public static boolean fireComboActive(Player p) {
         long ts = p.getPersistentData().getLong(FIRE_TS);
         return ts > 0 && p.level().getGameTime() - ts < 100; // ate 5 s depois do jutsu de fogo
-    }
-
-    /** Clique direito com a espada do Susanoo original enquanto monta o Susanoo do addon: golpe do addon. */
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onRightClick(PlayerInteractEvent.RightClickItem e) {
-        if (e.getLevel().isClientSide() || !(e.getEntity() instanceof ServerPlayer p)) return;
-        if (!(p.getVehicle() instanceof CharacterSusanoo cs) || !cs.isPerfectMount()) return;
-        ResourceLocation id = ForgeRegistries.ITEMS.getKey(e.getItemStack().getItem());
-        if (id == null || !id.getNamespace().equals("narutoto") || !id.getPath().equals("sasuke_susanoo_sword")) return;
-        e.setCanceled(true);
-        SusanooAbilities.slash(p, cs);
     }
 
     @SubscribeEvent
